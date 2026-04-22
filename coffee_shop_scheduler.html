@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coffee Shop Scheduler ☕</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0d12;
+  --bg2: #10131a;
+  --surface: #14171f;
+  --surface2: #1b1f2b;
+  --surface3: #222638;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #eef0f8;
+  --text2: #8b93a8;
+  --text3: #555e72;
+  --accent: #c9a96e;
+  --accent2: rgba(201,169,110,0.12);
+  --accent3: rgba(201,169,110,0.22);
+  --blue: #5b8dee;
+  --green: #52c48a;
+  --red: #e05c5c;
+  --purple: #9d7fe0;
+  --teal: #38bdf8;
+  --amber: #f5a623;
+  --pink: #e879a0;
+  --lime: #84cc16;
+  --r: 16px;
+  --r2: 10px;
+  --r3: 6px;
+  --shadow: 0 8px 40px rgba(0,0,0,0.55);
+  --shadow2: 0 2px 16px rgba(0,0,0,0.4);
+  --transition: 0.18s cubic-bezier(0.4,0,0.2,1);
+}
+[data-theme="light"] {
+  --bg: #f0f2f8;
+  --bg2: #e8eaf2;
+  --surface: #ffffff;
+  --surface2: #f4f6fc;
+  --surface3: #eaecf5;
+  --border: rgba(0,0,0,0.08);
+  --border2: rgba(0,0,0,0.14);
+  --text: #14171f;
+  --text2: #5a6278;
+  --text3: #9ca3af;
+  --accent: #a07c40;
+  --accent2: rgba(160,124,64,0.1);
+  --accent3: rgba(160,124,64,0.2);
+  --shadow: 0 8px 40px rgba(0,0,0,0.12);
+  --shadow2: 0 2px 16px rgba(0,0,0,0.08);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  padding:2.5rem 1rem 5rem;
+  transition:background var(--transition),color var(--transition);
+  overflow-x:hidden;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 55% 35% at 15% 5%,rgba(201,169,110,0.06) 0%,transparent 65%),
+    radial-gradient(ellipse 45% 45% at 85% 95%,rgba(91,141,238,0.06) 0%,transparent 65%),
+    radial-gradient(ellipse 40% 30% at 60% 50%,rgba(157,127,224,0.04) 0%,transparent 60%);
+  pointer-events:none;z-index:0;
+}
+[data-theme="light"] body::before{
+  background:
+    radial-gradient(ellipse 55% 35% at 15% 5%,rgba(201,169,110,0.08) 0%,transparent 65%),
+    radial-gradient(ellipse 45% 45% at 85% 95%,rgba(91,141,238,0.07) 0%,transparent 65%);
+}
+.wrap{max-width:820px;margin:0 auto;position:relative;z-index:1}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;justify-content:flex-end;margin-bottom:2rem;gap:8px}
+.icon-btn{
+  width:36px;height:36px;border-radius:var(--r3);
+  border:1px solid var(--border2);background:var(--surface);
+  color:var(--text2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;transition:all var(--transition);
+}
+.icon-btn:hover{background:var(--surface2);color:var(--text);border-color:var(--border2)}
+
+/* ── HEADER ── */
+.header{text-align:center;margin-bottom:2.5rem;animation:fadeUp .5s ease both}
+.header h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(30px,6vw,46px);
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-0.03em;
+  line-height:1.1;
+  margin-bottom:0.6rem;
+}
+.header h1 em{font-style:normal;color:var(--accent)}
+.header p{font-size:15px;color:var(--text2);font-weight:300;max-width:420px;margin:0 auto}
+
+/* ── CARD ── */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:1.75rem 2rem;
+  box-shadow:var(--shadow2);
+  transition:background var(--transition),border-color var(--transition);
+}
+.card+.card,.card+.result-section{margin-top:1.25rem}
+
+/* ── SEC LABEL ── */
+.sec-label{
+  font-size:10.5px;font-weight:600;
+  color:var(--text3);letter-spacing:.1em;
+  text-transform:uppercase;
+  margin-bottom:1.1rem;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:540px){.form-grid,.form-grid-3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12.5px;font-weight:500;color:var(--text2)}
+.field label .dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--accent);margin-right:5px;vertical-align:middle}
+input,select,textarea{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--r3);padding:9px 13px;
+  color:var(--text);font-family:'DM Mono',monospace;font-size:13.5px;
+  width:100%;transition:border-color var(--transition),box-shadow var(--transition),background var(--transition);
+  -webkit-appearance:none;appearance:none;
+}
+select{
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b93a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;padding-right:34px;cursor:pointer;
+}
+input::placeholder{color:var(--text3);font-size:12.5px}
+input:focus,select:focus{
+  outline:none;border-color:rgba(201,169,110,.5);
+  box-shadow:0 0 0 3px rgba(201,169,110,.12);
+}
+select option{background:var(--bg2)}
+.quantum-row{display:none;margin-bottom:1rem}
+.quantum-row.show{display:flex;gap:10px;align-items:flex-end}
+
+/* ── BUTTON ROW ── */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+.btn{
+  padding:8px 16px;border-radius:var(--r3);border:1px solid var(--border2);
+  background:var(--surface2);color:var(--text2);
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  cursor:pointer;transition:all var(--transition);white-space:nowrap;
+}
+.btn:hover{background:var(--surface3);color:var(--text);border-color:var(--border2)}
+.btn:active{transform:scale(.97)}
+.btn-primary{
+  background:linear-gradient(135deg,#c9a96e,#b8924f);
+  color:#0b0d12;border:none;font-weight:600;font-size:14.5px;
+  padding:11px 24px;box-shadow:0 4px 20px rgba(201,169,110,.25);
+  border-radius:var(--r3);font-family:'DM Sans',sans-serif;cursor:pointer;
+  transition:all var(--transition);flex:1;
+}
+.btn-primary:hover{opacity:.9;box-shadow:0 6px 28px rgba(201,169,110,.35);transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.98)}
+.btn-compare{
+  padding:11px 18px;border-radius:var(--r3);
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text2);font-family:'DM Sans',sans-serif;
+  font-size:13.5px;font-weight:500;cursor:pointer;transition:all var(--transition);
+}
+.btn-compare:hover{background:var(--surface3);color:var(--text)}
+
+/* ── ERROR ── */
+.error-box{
+  display:none;align-items:center;gap:10px;
+  background:rgba(224,92,92,.08);border:1px solid rgba(224,92,92,.25);
+  border-radius:var(--r3);padding:9px 13px;margin-top:10px;
+  font-size:13px;color:#f87171;
+}
+.error-box.show{display:flex}
+
+/* ── METRICS ── */
+.metrics-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.metric{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:1.1rem 1.25rem;
+  position:relative;overflow:hidden;
+}
+.metric::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:3px 0 0 3px}
+.metric.blue::before{background:var(--blue)}
+.metric-label{font-size:11.5px;color:var(--text2);margin-bottom:4px;font-weight:500}
+.metric-val{font-size:26px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text);letter-spacing:-.03em}
+.metric-unit{font-size:12px;color:var(--text3);font-weight:400;font-family:'DM Sans',sans-serif}
+
+/* ── ALGO PILL ── */
+.header-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1.25rem}
+.algo-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--accent2);border:1px solid var(--accent3);
+  border-radius:99px;padding:3px 12px;
+  font-size:11.5px;font-weight:600;color:var(--accent);
+  font-family:'DM Mono',monospace;letter-spacing:.05em;
+}
+
+/* ── GANTT ── */
+.gantt-outer{overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.gantt-outer::-webkit-scrollbar{height:4px}
+.gantt-outer::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.gantt-track{display:flex;height:56px;gap:3px;min-width:max-content;align-items:stretch;padding:0 2px}
+.gblock{
+  display:flex;align-items:center;justify-content:center;
+  border-radius:8px;font-size:11.5px;font-weight:600;
+  font-family:'DM Mono',monospace;letter-spacing:.04em;
+  cursor:pointer;flex-shrink:0;position:relative;
+  transition:transform .15s,opacity .15s,box-shadow .15s;
+  animation:blockIn .35s cubic-bezier(.34,1.56,.64,1) both;
+}
+.gblock:hover{transform:scaleY(1.1);box-shadow:0 4px 16px rgba(0,0,0,.35)}
+.gblock.active-step{transform:scaleY(1.15);box-shadow:0 0 0 2px rgba(255,255,255,.5),0 4px 20px rgba(0,0,0,.4);z-index:2}
+.idle-block{background:var(--surface2);border:1px dashed var(--border2);color:var(--text3);font-size:10px}
+.gantt-times{display:flex;min-width:max-content;position:relative;height:22px;margin-top:6px;padding:0 2px}
+.tmark{
+  position:absolute;font-size:10px;font-family:'DM Mono',monospace;
+  color:var(--text3);transform:translateX(-50%);top:0;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.tmark::before{content:'';display:block;width:1px;height:5px;background:var(--border2)}
+
+/* ── TOOLTIP ── */
+.g-tooltip{
+  position:fixed;background:var(--surface3);border:1px solid var(--border2);
+  border-radius:var(--r3);padding:7px 12px;font-size:12px;
+  font-family:'DM Mono',monospace;color:var(--text);
+  pointer-events:none;z-index:999;display:none;
+  box-shadow:var(--shadow2);line-height:1.6;
+}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+
+/* ── PLAY CONTROLS ── */
+.play-row{display:flex;gap:8px;align-items:center;margin-top:1rem;flex-wrap:wrap}
+.play-speed{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text2)}
+.play-speed input{width:90px;font-family:'DM Sans',sans-serif}
+.step-info{font-size:12px;color:var(--text2);font-family:'DM Mono',monospace}
+
+/* ── TABLE ── */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r2);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:480px}
+thead th{
+  background:var(--surface2);padding:10px 13px;
+  font-size:10.5px;font-weight:600;color:var(--text3);
+  text-transform:uppercase;letter-spacing:.08em;
+  text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+tbody tr{transition:background .1s}
+tbody tr:nth-child(odd) td{background:rgba(255,255,255,0.015)}
+[data-theme="light"] tbody tr:nth-child(odd) td{background:rgba(0,0,0,0.02)}
+tbody tr:hover td{background:rgba(201,169,110,.07)}
+tbody tr.highlighted td{background:rgba(201,169,110,.12) !important}
+tbody td{
+  padding:9px 13px;text-align:center;
+  border-bottom:1px solid var(--border);
+  color:var(--text2);font-family:'DM Mono',monospace;font-size:12.5px;
+}
+tbody tr:last-child td{border-bottom:none}
+.cid-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:22px;border-radius:4px;
+  font-size:11px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:.04em;
+}
+.val-hi{color:var(--text);font-weight:500}
+
+/* ── COMPARE SECTION ── */
+.compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1.5rem}
+.cmp-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:1rem;text-align:center;
+  transition:border-color var(--transition);position:relative;overflow:hidden;
+}
+.cmp-card.best{border-color:rgba(82,196,138,.4);background:rgba(82,196,138,.05)}
+.cmp-card.best::after{
+  content:'BEST';position:absolute;top:8px;right:-14px;
+  background:var(--green);color:#fff;font-size:9px;font-weight:700;
+  padding:2px 18px;transform:rotate(35deg);letter-spacing:.06em;
+}
+.cmp-name{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.cmp-wt{font-size:22px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text);letter-spacing:-.02em}
+.cmp-tat{font-size:12px;color:var(--text2);margin-top:2px;font-family:'DM Mono',monospace}
+.cmp-unit{font-size:11px;color:var(--text3)}
+
+/* ── BAR CHART ── */
+.bar-chart{margin-top:1rem}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:12.5px}
+.bar-algo-name{width:60px;color:var(--text2);font-weight:500;text-align:right;flex-shrink:0;font-size:11.5px}
+.bar-track{flex:1;background:var(--surface2);border-radius:4px;height:22px;overflow:hidden;position:relative}
+.bar-fill{
+  height:100%;border-radius:4px;
+  display:flex;align-items:center;padding:0 8px;
+  font-size:11px;font-family:'DM Mono',monospace;color:#fff;font-weight:500;
+  transition:width .8s cubic-bezier(.22,1,.36,1);
+  min-width:28px;
+}
+.bar-val{width:36px;color:var(--text2);font-family:'DM Mono',monospace;font-size:11.5px;text-align:right;flex-shrink:0}
+
+/* ── INFO PANEL ── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.info-grid{grid-template-columns:1fr}}
+.info-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--r2);padding:.9rem 1rem;
+}
+.info-algo{font-size:11.5px;font-weight:700;font-family:'DM Mono',monospace;color:var(--accent);letter-spacing:.05em;margin-bottom:4px}
+.info-desc{font-size:12.5px;color:var(--text2);line-height:1.55}
+.info-tag{
+  display:inline-block;font-size:10px;padding:1px 7px;
+  border-radius:99px;margin-top:5px;font-weight:600;letter-spacing:.04em;
+}
+.tag-preempt{background:rgba(224,92,92,.12);color:#f87171}
+.tag-non{background:rgba(82,196,138,.1);color:#52c48a}
+
+/* ── EXPORT ── */
+.export-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--r3);
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text2);font-size:12.5px;font-family:'DM Sans',sans-serif;
+  cursor:pointer;transition:all var(--transition);font-weight:500;
+}
+.export-btn:hover{background:var(--surface3);color:var(--text)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blockIn{from{opacity:0;transform:scaleY(.3)}to{opacity:1;transform:scaleY(1)}}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.result-section{animation:slideIn .4s ease both}
+.hidden{display:none!important}
+
+/* ── TABS ── */
+.tab-row{display:flex;gap:4px;margin-bottom:1.25rem;background:var(--surface2);padding:3px;border-radius:var(--r3);border:1px solid var(--border)}
+.tab-btn{
+  flex:1;padding:7px;border-radius:5px;border:none;
+  background:transparent;color:var(--text2);
+  font-size:12.5px;font-family:'DM Sans',sans-serif;font-weight:500;
+  cursor:pointer;transition:all var(--transition);
+}
+.tab-btn.active{background:var(--surface3);color:var(--text);box-shadow:var(--shadow2)}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+
+<div class="g-tooltip" id="tooltip"></div>
+
+<div class="wrap">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="icon-btn" id="themeBtn" title="Toggle theme" onclick="toggleTheme()">🌙</button>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <h1>Coffee Shop <em>Scheduler</em> ☕</h1>
+    <p>A Simulation of CPU Scheduling Algorithms for Efficient Order Processing</p>
+  </header>
+
+  <!-- INPUT CARD -->
+  <div class="card" style="animation:fadeUp .45s ease both">
+    <div class="sec-label">Configuration</div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label><span class="dot"></span>Arrival Times</label>
+        <input type="text" id="arrivals" placeholder="e.g. 0 1 2 3" value="0 1 2 3" autocomplete="off">
+      </div>
+      <div class="field">
+        <label><span class="dot"></span>Burst Times</label>
+        <input type="text" id="bursts" placeholder="e.g. 5 3 8 2" value="5 3 8 2" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-grid" id="priorityRow" style="display:none;margin-bottom:1rem">
+      <div class="field">
+        <label><span class="dot"></span>Priority Values <span style="color:var(--text3);font-size:11px">(lower = higher priority)</span></label>
+        <input type="text" id="priorities" placeholder="e.g. 2 1 3 4" value="2 1 3 4" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label><span class="dot"></span>Algorithm</label>
+        <select id="algo" onchange="onAlgoChange()">
+          <option value="fcfs">FCFS — First Come First Serve</option>
+          <option value="sjf">SJF — Shortest Job First</option>
+          <option value="srtf">SRTF — Shortest Remaining Time First</option>
+          <option value="rr">RR — Round Robin</option>
+          <option value="priority">Priority Scheduling</option>
+        </select>
+      </div>
+      <div class="field quantum-row" id="quantumWrap" style="display:none">
+        <label><span class="dot"></span>Time Quantum (RR)</label>
+        <input type="number" id="quantum" value="2" min="1" max="99">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="loadExample()">📋 Example</button>
+      <button class="btn" onclick="randomInput()">🎲 Random</button>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn-primary" onclick="run()">Start Simulation →</button>
+      <button class="btn-compare" onclick="compareAll()">⚖ Compare All</button>
+    </div>
+
+    <div class="error-box" id="err"><span style="font-weight:700;margin-right:2px">!</span><span id="errMsg"></span></div>
+  </div>
+
+  <!-- RESULT SECTION -->
+  <div class="result-section hidden" id="output">
+
+    <!-- METRICS + GANTT -->
+    <div class="card" style="margin-top:1.25rem">
+      <div class="header-row">
+        <div class="sec-label" style="margin-bottom:0;flex:none">Results</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="algo-pill" id="algoPill">FCFS</span>
+          <button class="export-btn" onclick="exportCSV()">⬇ CSV</button>
+        </div>
+      </div>
+
+      <div class="metrics-row" id="metrics"></div>
+
+      <div class="sec-label">Gantt Chart</div>
+      <div class="gantt-outer">
+        <div class="gantt-track" id="gantt"></div>
+        <div class="gantt-times" id="timeline"></div>
+      </div>
+      <div class="legend" id="legend"></div>
+
+      <!-- PLAY CONTROLS -->
+      <div class="play-row">
+        <button class="btn" id="playBtn" onclick="playStep()">▶ Play</button>
+        <button class="btn" onclick="resetPlay()">↺ Reset</button>
+        <div class="play-speed">
+          <span>Speed</span>
+          <select id="playSpeed" style="width:90px;padding:5px 10px;font-size:12.5px">
+            <option value="800">Slow</option>
+            <option value="400" selected>Normal</option>
+            <option value="180">Fast</option>
+          </select>
+        </div>
+        <span class="step-info" id="stepInfo"></span>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="card">
+      <div class="sec-label">Customer Details</div>
+      <div class="tbl-wrap">
+        <table id="tbl">
+          <thead>
+            <tr>
+              <th>Customer</th><th>Arrival</th><th>Burst</th>
+              <th>Completion</th><th>Turnaround</th><th>Waiting</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- COMPARE SECTION -->
+  <div class="result-section hidden card" id="compareSection" style="margin-top:1.25rem">
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('cards')">Cards</button>
+      <button class="tab-btn" onclick="switchTab('chart')">Bar Chart</button>
+    </div>
+    <div id="compareCards"></div>
+    <div id="compareChart" class="hidden"></div>
+  </div>
+
+  <!-- INFO PANEL -->
+  <div class="card" style="margin-top:1.25rem;animation:fadeUp .6s .15s ease both">
+    <div class="sec-label">Algorithm Reference</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-algo">FCFS</div>
+        <div class="info-desc">Customers served in the order they arrive. Simple and fair but may cause long waits.</div>
+        <span class="info-tag tag-non">Non-preemptive</span>
+      </div>
+      <div class="info-card">
+        <div class="info-algo">SJF</div>
+        <div class="info-desc">Shortest order prepared first. Minimizes average wait time but can starve long orders.</div>
+        <span class="info-tag tag-non">Non-preemptive</span>
+      </div>
+      <div class="info-card">
+        <div class="info-algo">SRTF</div>
+        <div class="info-desc">Preemptive SJF. Switches to shorter arriving order mid-preparation. Optimal avg wait.</div>
+        <span class="info-tag tag-preempt">Preemptive</span>
+      </div>
+      <div class="info-card">
+        <div class="info-algo">RR</div>
+        <div class="info-desc">Each customer gets equal time slices (quantum). Fair, no starvation, higher turnaround.</div>
+        <span class="info-tag tag-preempt">Preemptive</span>
+      </div>
+      <div class="info-card" style="grid-column:span 2 / span 2">
+        <div class="info-algo">Priority</div>
+        <div class="info-desc">Customers with highest priority (lowest number) served first. VIP orders jump the queue. Can cause starvation of low-priority customers.</div>
+        <span class="info-tag tag-non">Non-preemptive</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PALETTE=[
+  {bg:'#5b8dee',text:'#fff'},
+  {bg:'#52c48a',text:'#0a1a10'},
+  {bg:'#e05c5c',text:'#fff'},
+  {bg:'#9d7fe0',text:'#fff'},
+  {bg:'#f5a623',text:'#1a0d00'},
+  {bg:'#38bdf8',text:'#001a26'},
+  {bg:'#e879a0',text:'#fff'},
+  {bg:'#84cc16',text:'#0d1a00'},
+  {bg:'#fb923c',text:'#fff'},
+  {bg:'#a78bfa',text:'#fff'},
+];
+
+let lastArr=[],lastBst=[],lastCt=[],lastSegments=[],playTimer=null,playIdx=0,isPlaying=false;
+
+// ── THEME ──
+function toggleTheme(){
+  const h=document.documentElement;
+  const isDark=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',isDark?'light':'dark');
+  document.getElementById('themeBtn').textContent=isDark?'☀️':'🌙';
+}
+
+// ── ALGO CHANGE ──
+function onAlgoChange(){
+  const v=document.getElementById('algo').value;
+  document.getElementById('quantumWrap').style.display=v==='rr'?'flex':'none';
+  document.getElementById('priorityRow').style.display=v==='priority'?'grid':'none';
+}
+
+// ── PARSE INPUT ──
+function parseInput(){
+  const aRaw=document.getElementById('arrivals').value.trim();
+  const bRaw=document.getElementById('bursts').value.trim();
+  if(!aRaw||!bRaw)return{err:'Please fill in Arrival Times and Burst Times.'};
+  const arr=aRaw.split(/\s+/).map(Number);
+  const bst=bRaw.split(/\s+/).map(Number);
+  if(arr.some(isNaN)||bst.some(isNaN))return{err:'All values must be valid numbers.'};
+  if(arr.length!==bst.length)return{err:`Count mismatch: ${arr.length} arrival(s) vs ${bst.length} burst(s).`};
+  if(arr.length===0)return{err:'Enter at least one customer.'};
+  if(bst.some(v=>v<=0))return{err:'Burst Times must be > 0.'};
+  if(arr.some(v=>v<0))return{err:'Arrival Times must be ≥ 0.'};
+  return{arr,bst};
+}
+
+// ── EXAMPLE / RANDOM ──
+function loadExample(){
+  document.getElementById('arrivals').value='0 1 2 3 4';
+  document.getElementById('bursts').value='6 4 2 5 3';
+  document.getElementById('priorities').value='3 1 4 2 5';
+}
+function randomInput(){
+  const n=Math.floor(Math.random()*4)+3;
+  const arr=[],bst=[],pri=[];
+  let t=0;
+  for(let i=0;i<n;i++){
+    arr.push(t);t+=Math.floor(Math.random()*3);
+    bst.push(Math.floor(Math.random()*7)+1);
+    pri.push(Math.floor(Math.random()*5)+1);
+  }
+  document.getElementById('arrivals').value=arr.join(' ');
+  document.getElementById('bursts').value=bst.join(' ');
+  document.getElementById('priorities').value=pri.join(' ');
+}
+
+// ── ALGORITHMS ──
+function fcfs(arr,bst){
+  const n=arr.length;
+  const idx=[...Array(n).keys()].sort((a,b)=>arr[a]-arr[b]||a-b);
+  let t=0;const ct=new Array(n);const segs=[];
+  for(const i of idx){
+    if(t<arr[i]){segs.push({id:-1,start:t,end:arr[i]});t=arr[i];}
+    segs.push({id:i,start:t,end:t+bst[i]});t+=bst[i];ct[i]=t;
+  }
+  return{ct,segs};
+}
+
+function sjf(arr,bst){
+  const n=arr.length;const done=new Array(n).fill(false);
+  const ct=new Array(n);const segs=[];let t=0,finished=0;
+  while(finished<n){
+    let best=-1,minB=Infinity;
+    for(let i=0;i<n;i++){
+      if(!done[i]&&arr[i]<=t&&bst[i]<minB){minB=bst[i];best=i;}
+    }
+    if(best===-1){
+      const nxt=arr.filter((_,i)=>!done[i]).reduce((a,b)=>Math.min(a,b),Infinity);
+      segs.push({id:-1,start:t,end:nxt});t=nxt;continue;
+    }
+    segs.push({id:best,start:t,end:t+bst[best]});
+    t+=bst[best];ct[best]=t;done[best]=true;finished++;
+  }
+  return{ct,segs};
+}
+
+function srtf(arr,bst){
+  const n=arr.length;const rem=[...bst];
+  const ct=new Array(n).fill(0);const segs=[];
+  let done=0,t=0,prev=-1,segStart=0;
+  while(done<n){
+    let best=-1,minR=Infinity;
+    for(let i=0;i<n;i++){
+      if(arr[i]<=t&&rem[i]>0&&rem[i]<minR){minR=rem[i];best=i;}
+    }
+    if(best===-1){
+      if(prev!==-1){segs.push({id:prev,start:segStart,end:t});prev=-1;}
+      const nxt=arr.filter((_,i)=>rem[i]>0).reduce((a,b)=>Math.min(a,b),Infinity);
+      if(nxt===Infinity)break;
+      segs.push({id:-1,start:t,end:nxt});t=nxt;continue;
+    }
+    if(best!==prev){
+      if(prev!==-1)segs.push({id:prev,start:segStart,end:t});
+      segStart=t;prev=best;
+    }
+    rem[best]--;t++;
+    if(rem[best]===0){
+      done++;ct[best]=t;
+      segs.push({id:best,start:segStart,end:t});
+      prev=-1;segStart=t;
+    }
+  }
+  if(prev!==-1)segs.push({id:prev,start:segStart,end:t});
+  return{ct,segs};
+}
+
+function roundRobin(arr,bst,q){
+  const n=arr.length;const rem=[...bst];
+  const ct=new Array(n).fill(0);const segs=[];
+  let t=0;const queue=[];const inQueue=new Array(n).fill(false);
+  // Add processes that arrive at t=0
+  for(let i=0;i<n;i++){if(arr[i]<=t&&!inQueue[i]){queue.push(i);inQueue[i]=true;}}
+  while(queue.length>0||rem.some((r,i)=>r>0&&arr[i]>t)){
+    if(queue.length===0){
+      const nxt=arr.filter((_,i)=>rem[i]>0).reduce((a,b)=>Math.min(a,b),Infinity);
+      segs.push({id:-1,start:t,end:nxt});t=nxt;
+      for(let i=0;i<n;i++){if(arr[i]<=t&&rem[i]>0&&!inQueue[i]){queue.push(i);inQueue[i]=true;}}
+      continue;
+    }
+    const cur=queue.shift();
+    const exec=Math.min(rem[cur],q);
+    segs.push({id:cur,start:t,end:t+exec});
+    t+=exec;rem[cur]-=exec;
+    // Add new arrivals
+    for(let i=0;i<n;i++){if(arr[i]>t-exec&&arr[i]<=t&&rem[i]>0&&!inQueue[i]){queue.push(i);inQueue[i]=true;}}
+    if(rem[cur]>0){queue.push(cur);}
+    else{ct[cur]=t;}
+  }
+  return{ct,segs};
+}
+
+function priorityScheduling(arr,bst,pri){
+  const n=arr.length;const done=new Array(n).fill(false);
+  const ct=new Array(n);const segs=[];let t=0,finished=0;
+  while(finished<n){
+    let best=-1,minP=Infinity;
+    for(let i=0;i<n;i++){
+      if(!done[i]&&arr[i]<=t&&pri[i]<minP){minP=pri[i];best=i;}
+    }
+    if(best===-1){
+      const nxt=arr.filter((_,i)=>!done[i]).reduce((a,b)=>Math.min(a,b),Infinity);
+      segs.push({id:-1,start:t,end:nxt});t=nxt;continue;
+    }
+    segs.push({id:best,start:t,end:t+bst[best]});
+    t+=bst[best];ct[best]=t;done[best]=true;finished++;
+  }
+  return{ct,segs};
+}
+
+function runAlgo(arr,bst,algoName,q,pri){
+  switch(algoName){
+    case'fcfs':return fcfs(arr,bst);
+    case'sjf':return sjf(arr,bst);
+    case'srtf':return srtf(arr,bst);
+    case'rr':return roundRobin(arr,bst,q);
+    case'priority':return priorityScheduling(arr,bst,pri);
+  }
+}
+
+// ── GANTT ──
+function showGantt(segments){
+  const ganttEl=document.getElementById('gantt');
+  const timeEl=document.getElementById('timeline');
+  const legendEl=document.getElementById('legend');
+  ganttEl.innerHTML='';timeEl.innerHTML='';legendEl.innerHTML='';
+
+  const totalTime=Math.max(...segments.map(s=>s.end));
+  const availW=Math.min(700,window.innerWidth-60);
+  const scale=availW/Math.max(totalTime,1);
+  const marks=new Set();
+
+  segments.forEach((s,si)=>{
+    marks.add(s.start);marks.add(s.end);
+    const w=Math.max((s.end-s.start)*scale,24);
+    const div=document.createElement('div');
+    div.className='gblock';
+    div.dataset.sid=si;
+    div.dataset.cid=s.id;
+    div.style.width=w+'px';
+    div.style.animationDelay=(si*.03)+'s';
+
+    if(s.id===-1){
+      div.classList.add('idle-block');div.textContent='—';
+    } else {
+      const c=PALETTE[s.id%PALETTE.length];
+      div.style.background=c.bg;div.style.color=c.text;
+      div.textContent='C'+(s.id+1);
+      div.addEventListener('mouseenter',e=>showTooltip(e,s));
+      div.addEventListener('mousemove',e=>moveTooltip(e));
+      div.addEventListener('mouseleave',hideTooltip);
+      div.addEventListener('click',()=>highlightRow(s.id));
+    }
+    ganttEl.appendChild(div);
+  });
+
+  const totalW=totalTime*scale+6;
+  ganttEl.style.width=totalW+'px';
+  timeEl.style.width=totalW+'px';
+
+  [...marks].sort((a,b)=>a-b).forEach(m=>{
+    const span=document.createElement('span');
+    span.className='tmark';
+    span.style.left=(m*scale)+'px';
+    span.textContent=m;
+    timeEl.appendChild(span);
+  });
+
+  const seen=new Set();
+  segments.forEach(s=>{
+    if(s.id===-1||seen.has(s.id))return;
+    seen.add(s.id);
+    const c=PALETTE[s.id%PALETTE.length];
+    const item=document.createElement('div');
+    item.className='legend-item';
+    item.innerHTML=`<span class="legend-dot" style="background:${c.bg}"></span>C${s.id+1}`;
+    legendEl.appendChild(item);
+  });
+}
+
+// ── TOOLTIP ──
+function showTooltip(e,s){
+  const t=document.getElementById('tooltip');
+  t.innerHTML=`<b>C${s.id+1}</b><br>Start: ${s.start}<br>End: ${s.end}<br>Duration: ${s.end-s.start}`;
+  t.style.display='block';
+  moveTooltip(e);
+}
+function moveTooltip(e){
+  const t=document.getElementById('tooltip');
+  t.style.left=(e.clientX+14)+'px';
+  t.style.top=(e.clientY-10)+'px';
+}
+function hideTooltip(){document.getElementById('tooltip').style.display='none';}
+
+// ── HIGHLIGHT ROW ──
+function highlightRow(id){
+  document.querySelectorAll('#tbl tbody tr').forEach((tr,i)=>{
+    tr.classList.toggle('highlighted',parseInt(tr.dataset.id)===id);
+  });
+}
+
+// ── TABLE ──
+function showTable(arr,bst,ct){
+  const tbody=document.querySelector('#tbl tbody');
+  tbody.innerHTML='';
+  let sumWT=0,sumTAT=0;
+  const n=arr.length;
+  for(let i=0;i<n;i++){
+    const tat=ct[i]-arr[i];
+    const wt=tat-bst[i];
+    sumWT+=wt;sumTAT+=tat;
+    const c=PALETTE[i%PALETTE.length];
+    const tr=document.createElement('tr');
+    tr.dataset.id=i;
+    tr.innerHTML=`
+      <td><span class="cid-badge" style="background:${c.bg}1f;color:${c.bg};border:1px solid ${c.bg}30">C${i+1}</span></td>
+      <td>${arr[i]}</td><td>${bst[i]}</td>
+      <td class="val-hi">${ct[i]}</td>
+      <td class="val-hi">${tat}</td>
+      <td class="val-hi">${wt}</td>
+    `;
+    tbody.appendChild(tr);
+  }
+  document.getElementById('metrics').innerHTML=`
+    <div class="metric">
+      <div class="metric-label">Avg Waiting Time</div>
+      <div class="metric-val">${(sumWT/n).toFixed(2)} <span class="metric-unit">units</span></div>
+    </div>
+    <div class="metric blue">
+      <div class="metric-label">Avg Turnaround Time</div>
+      <div class="metric-val">${(sumTAT/n).toFixed(2)} <span class="metric-unit">units</span></div>
+    </div>
+  `;
+}
+
+// ── PLAY SIMULATION ──
+function playStep(){
+  if(isPlaying){
+    clearInterval(playTimer);isPlaying=false;
+    document.getElementById('playBtn').textContent='▶ Play';return;
+  }
+  resetPlay();
+  isPlaying=true;
+  document.getElementById('playBtn').textContent='⏸ Pause';
+  const blocks=document.querySelectorAll('#gantt .gblock');
+  const speed=parseInt(document.getElementById('playSpeed').value);
+
+  playTimer=setInterval(()=>{
+    blocks.forEach(b=>b.classList.remove('active-step'));
+    if(playIdx>=blocks.length){
+      clearInterval(playTimer);isPlaying=false;
+      document.getElementById('playBtn').textContent='▶ Play';
+      document.getElementById('stepInfo').textContent='Done ✓';
+      return;
+    }
+    const b=blocks[playIdx];
+    b.classList.add('active-step');
+    const cid=parseInt(b.dataset.cid);
+    if(cid>=0)highlightRow(cid);
+    const seg=lastSegments[playIdx];
+    document.getElementById('stepInfo').textContent=
+      cid>=0?`C${cid+1}: t=${seg.start}→${seg.end}`:`Idle: t=${seg.start}→${seg.end}`;
+    playIdx++;
+  },speed);
+}
+function resetPlay(){
+  clearInterval(playTimer);isPlaying=false;playIdx=0;
+  document.getElementById('playBtn').textContent='▶ Play';
+  document.getElementById('stepInfo').textContent='';
+  document.querySelectorAll('#gantt .gblock').forEach(b=>b.classList.remove('active-step'));
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>tr.classList.remove('highlighted'));
+}
+
+// ── MAIN RUN ──
+function run(){
+  const errEl=document.getElementById('err');
+  errEl.classList.remove('show');
+  const parsed=parseInput();
+  if(parsed.err){
+    document.getElementById('errMsg').textContent=parsed.err;
+    errEl.classList.add('show');return;
+  }
+  const{arr,bst}=parsed;
+  const algo=document.getElementById('algo').value;
+  const q=parseInt(document.getElementById('quantum').value)||2;
+  const priRaw=document.getElementById('priorities').value.trim();
+  let pri=priRaw.split(/\s+/).map(Number);
+  if(algo==='priority'&&(pri.length!==arr.length||pri.some(isNaN))){
+    document.getElementById('errMsg').textContent='Priority values count must match customer count.';
+    errEl.classList.add('show');return;
+  }
+
+  const{ct,segs}=runAlgo(arr,bst,algo,q,pri);
+  lastArr=arr;lastBst=bst;lastCt=ct;lastSegments=segs;
+
+  resetPlay();
+  const algoNames={fcfs:'FCFS',sjf:'SJF',srtf:'SRTF',rr:'Round Robin',priority:'Priority'};
+  document.getElementById('algoPill').textContent=algoNames[algo];
+  showGantt(segs);
+  showTable(arr,bst,ct);
+
+  const out=document.getElementById('output');
+  out.classList.remove('hidden');
+  out.style.animation='none';
+  requestAnimationFrame(()=>out.style.animation='');
+  setTimeout(()=>out.scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+// ── COMPARE ──
+function compareAll(){
+  const parsed=parseInput();
+  if(parsed.err){
+    document.getElementById('errMsg').textContent=parsed.err;
+    document.getElementById('err').classList.add('show');return;
+  }
+  document.getElementById('err').classList.remove('show');
+  const{arr,bst}=parsed;
+  const q=parseInt(document.getElementById('quantum').value)||2;
+  const priRaw=document.getElementById('priorities').value.trim();
+  let pri=priRaw.split(/\s+/).map(Number);
+  if(pri.length!==arr.length||pri.some(isNaN))pri=arr.map((_,i)=>i+1);
+
+  const algos=[
+    {key:'fcfs',label:'FCFS'},
+    {key:'sjf',label:'SJF'},
+    {key:'srtf',label:'SRTF'},
+    {key:'rr',label:`RR(${q})`},
+    {key:'priority',label:'Priority'},
+  ];
+
+  const results=algos.map(a=>{
+    const{ct}=runAlgo(arr,bst,a.key,q,pri);
+    const n=arr.length;
+    let sumWT=0,sumTAT=0;
+    for(let i=0;i<n;i++){
+      const tat=ct[i]-arr[i];sumTAT+=tat;sumWT+=tat-bst[i];
+    }
+    return{...a,avgWT:+(sumWT/n).toFixed(2),avgTAT:+(sumTAT/n).toFixed(2)};
+  });
+
+  const best=results.reduce((a,b)=>a.avgWT<b.avgWT?a:b);
+  renderCompareCards(results,best.key);
+  renderCompareChart(results,best.key);
+
+  const sec=document.getElementById('compareSection');
+  sec.classList.remove('hidden');
+  sec.style.animation='none';
+  requestAnimationFrame(()=>sec.style.animation='');
+  setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'start'}),100);
+}
+
+function renderCompareCards(results,bestKey){
+  const el=document.getElementById('compareCards');
+  el.innerHTML=`<div class="compare-grid">${
+    results.map(r=>`
+      <div class="cmp-card${r.key===bestKey?' best':''}">
+        <div class="cmp-name">${r.label}</div>
+        <div class="cmp-wt">${r.avgWT}</div>
+        <div class="cmp-tat">TAT: ${r.avgTAT}</div>
+        <div class="cmp-unit">avg wait · units</div>
+      </div>
+    `).join('')
+  }</div>`;
+}
+
+function renderCompareChart(results,bestKey){
+  const el=document.getElementById('compareChart');
+  const maxWT=Math.max(...results.map(r=>r.avgWT),1);
+  el.innerHTML=`
+    <p style="font-size:11.5px;color:var(--text3);margin-bottom:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Avg Waiting Time Comparison</p>
+    ${results.map((r,i)=>{
+      const w=Math.max((r.avgWT/maxWT)*100,2);
+      const c=PALETTE[i%PALETTE.length];
+      return`<div class="bar-row">
+        <span class="bar-algo-name">${r.label}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${w}%;background:${c.bg};transition-delay:${i*.1}s">
+            ${r.avgWT>0?r.avgWT:''}
+          </div>
+        </div>
+        <span class="bar-val">${r.avgWT}</span>
+      </div>`;
+    }).join('')}
+    <p style="font-size:11.5px;color:var(--text3);margin-top:14px;margin-bottom:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Avg Turnaround Time Comparison</p>
+    ${results.map((r,i)=>{
+      const maxTAT=Math.max(...results.map(x=>x.avgTAT),1);
+      const w=Math.max((r.avgTAT/maxTAT)*100,2);
+      const c=PALETTE[(i+3)%PALETTE.length];
+      return`<div class="bar-row">
+        <span class="bar-algo-name">${r.label}</span>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${w}%;background:${c.bg};transition-delay:${i*.1}s">
+            ${r.avgTAT>0?r.avgTAT:''}
+          </div>
+        </div>
+        <span class="bar-val">${r.avgTAT}</span>
+      </div>`;
+    }).join('')}
+  `;
+}
+
+// ── TABS ──
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',(tab==='cards'&&i===0)||(tab==='chart'&&i===1)));
+  document.getElementById('compareCards').classList.toggle('hidden',tab==='chart');
+  document.getElementById('compareChart').classList.toggle('hidden',tab==='cards');
+}
+
+// ── EXPORT CSV ──
+function exportCSV(){
+  if(!lastArr.length)return;
+  const rows=[['Customer','Arrival','Burst','Completion','Turnaround','Waiting']];
+  for(let i=0;i<lastArr.length;i++){
+    const tat=lastCt[i]-lastArr[i];
+    rows.push([`C${i+1}`,lastArr[i],lastBst[i],lastCt[i],tat,tat-lastBst[i]]);
+  }
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='scheduler-results.csv';a.click();
+}
+
+// ── INIT ──
+run();
+</script>
+</body>
+</html>
